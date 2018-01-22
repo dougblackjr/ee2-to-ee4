@@ -10,8 +10,9 @@ class ViewController
 	{
 
 		// Get config files
-		require_once(DOCROOT . 'config/db1.php');
-		require_once(DOCROOT . 'config/db2.php');
+
+		require_once(DOCROOT . '/config/db1.php');
+		require_once(DOCROOT . '/config/db2.php');
 
 		// Connect and Set DBs
 		$this->databaseOne = $this->connectToDB($db1);
