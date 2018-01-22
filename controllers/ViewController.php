@@ -97,8 +97,10 @@ class ViewController
 
 		while($row = $dbResult->fetch_assoc()) {
 
-			$returnData[$row['fieldtype_id']] = $row['name'];
-
+			$returnData[] = array(
+				'id' => $row['fieldtype_id'],
+				'name' => $row['name']
+			);
 		}
 
 		return $returnData;
@@ -112,7 +114,23 @@ class ViewController
 
 		while($row = $dbResult->fetch_assoc()) {
 
-			$returnData[$row['field_id']] = $row['field_label'] . '(' . $row['field_type'] . ')';
+			switch ($row['field_type']) {
+				case 'matrix':
+				case 'playa':
+					$message = 'This field is deprecated. Please use the EE2 Playa/Matrix Convertor before using this';
+					break;
+				
+				default:
+					$message = NULL;
+					break;
+			}
+
+			$returnData[] = array(
+				'id' => $row['field_id'],
+				'name' => $row['field_label'] . ' (' . $row['field_type'] . ')',
+				'formName' => 'dbfield_' . $row['field_id'],
+				'message' => $message
+			);
 
 		}
 
