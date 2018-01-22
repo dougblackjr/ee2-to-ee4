@@ -54,7 +54,7 @@ class ViewController
 	{
 
 		// ========= INITIALIZE =========
-		$db1_ViewData = $db2_ViewData = $db1_fieldtypes = $db2_fieldtypes = $db1_fields = $db2_fields = array();
+		$db1_fieldtypes = $db2_fieldtypes = $db1_fields = $db2_fields = array();
 		$fieldtypeQuery = 'SELECT fieldtype_id, name FROM exp_fieldtypes';
 		$fielddataQuery = 'SELECT field_id, field_name, field_label, field_type FROM exp_channel_fields';
 
