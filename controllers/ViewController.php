@@ -1,16 +1,10 @@
 <?php
 
-class Controller
+class ViewController
 {
 
 	public $databaseOne;
 	public $databaseTwo;
-
-	public $db1_Fields;
-	public $db1_Data;
-
-	public $db2_Fields;
-	public $db2_Data;
 
 	function __construct()
 	{
@@ -45,6 +39,13 @@ class Controller
 		}
 
 		return $conn;
+
+	}
+
+	public function view()
+	{
+
+		return json_encode($this->getViewDBData());
 
 	}
 
@@ -115,38 +116,6 @@ class Controller
 		}
 
 		return $returnData;
-
-	}
-
-	function getFormData()
-	{
-
-	}
-
-	function getMoveDBData()
-	{
-
-		// ========= INITIALIZE =========
-
-		// ========= DATABASE 1 (EE2) =========
-		// Get exp_fieldtypes (get fieldtype_id, name)
-		// Get exp_channel_fields (get field_id, field_name, field_type)
-		// Foreach field
-			// Get table name
-			// Get field name
-
-		// ========= DATABASE 2 (EE4) =========
-		// Get exp_fieldtypes
-
-	}
-
-	function moveEntries()
-	{
-
-	}
-
-	function returnNextView()
-	{
 
 	}
 

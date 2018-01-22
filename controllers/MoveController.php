@@ -1,16 +1,10 @@
 <?php
 
-class ViewController
+class MoveController
 {
 
 	public $databaseOne;
 	public $databaseTwo;
-
-	public $db1_Fields;
-	public $db1_Data;
-
-	public $db2_Fields;
-	public $db2_Data;
 
 	function __construct()
 	{
