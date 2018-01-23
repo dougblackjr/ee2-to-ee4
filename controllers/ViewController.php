@@ -127,7 +127,8 @@ class ViewController
 
 			$returnData[] = array(
 				'id' => $row['field_id'],
-				'name' => $row['field_label'] . ' (' . $row['field_type'] . ')',
+				'name' => $row['field_label'],
+				'info' => '(' . $row['field_name'] . ' - ' . $row['field_type'] . ')',
 				'formName' => 'dbfield_' . $row['field_id'],
 				'message' => $message
 			);

@@ -43,13 +43,14 @@
 					<div class="columns" v-for="f in fields1" :key="f.id">
 						<div class="column is-one-quarter">
 							<div class="control">
-								<label v-bind:for="f.formName">{{ f.name }}</label>
+								<label v-bind:for="f.formName">{{ f.name }}<br /><small>{{ f.info }}</small></label>
 							</div>
 						</div>
 						<div class="column">
 							<div class="control">
 								<div class="select">
-									<select v-bind:id="f.formName" v-bind:name="f.formName">
+									<p v-if="f.message">{{ f.message }}</p>
+									<select v-bind:id="f.formName" v-bind:name="f.formName" v-else>
 										<option value selected></option>
 										<option v-for="f2 in fields2" :value="f2.id">{{ f2.name }}</option>
 									</select>
