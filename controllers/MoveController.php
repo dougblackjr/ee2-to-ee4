@@ -41,32 +41,104 @@ class MoveController
 	{
 
 		$initRequest = $this->initializeFields($request);
-var_dump($initRequest);
-die();
+		
+		foreach ($initRequest as $field) {
+			
+			$getQuery = $this->getMoveDBData($field);
+
+		}
+
 	}
 
 	function initializeFields($request)
 	{
 
 		// Remove empty data from Request data
-		return array_filter($request);
+		$filteredRequest = array_filter($request);
+		
+		$db1_fields = $this->getViewDBData();
+
+		$fieldsToMove = array();
+
+		foreach ($filteredRequest as $db1name => $db2name) {
+			
+			$fieldNumber = str_replace('dbfield_', '', $db1name);
+
+			// Get array for filtered Request
+			foreach ($db1_fields as $dbf) {
+				
+				if($dbf['id'] == $fieldNumber) {
+
+					$foundField = $dbf;
+
+					$foundField['db2_table'] = 'exp_channel_data_field_' . $db2name;
+
+					$fieldsToMove[] = $foundField;
+
+				}
+
+			}
+
+		}
+
+		return $fieldsToMove;
 
 	}
 
-	function getMoveDBData()
+	function getMoveDBData($dbInfo)
 	{
 
-		// ========= INITIALIZE =========
+		// Set up query
+		switch ($dbInfo['type']) {
+			case 'relationship':
+				$data = $this->getRelationshipData($dbInfo);
+				break;
+			
+			case 'grid':
+				$data = $this->getGridData($dbInfo);
+				break;
 
-		// ========= DATABASE 1 (EE2) =========
-		// Get exp_fieldtypes (get fieldtype_id, name)
-		// Get exp_channel_fields (get field_id, field_name, field_type)
-		// Foreach field
-			// Get table name
-			// Get field name
+			case 'matrix':
+			case 'playa':
+				die('I TOLD YOU NO ' . $dbInfo['type'] . ' FIELDS! But some just want to watch the world burn.');
+				break;
 
-		// ========= DATABASE 2 (EE4) =========
-		// Get exp_fieldtypes
+			default:
+				$data = $this->getRegularData($dbInfo);
+				break;
+		}
+
+	}
+
+	private function getRelationshipData($dbInfo)
+	{
+
+		// $query = 'SELECT '
+
+	}
+
+	private function getGridData($dbInfo)
+	{
+
+	}
+
+	private function getRegularData($dbInfo)
+	{
+
+		$query = 'SELECT field_id_' . $dbInfo['id'] . ',field_ft_' . $dbInfo['id'] . ' FROM ' . $dbInfo['table'];
+		
+		$results = $this->databaseOne->query($query);
+
+		$outputData = array();
+
+		while($row = $results->fetch_assoc()) {
+
+			$outputData[] = $row;
+
+		}
+
+		var_dump($outputData);
+		die();
 
 	}
 
@@ -99,25 +171,8 @@ die();
 		$db1_results = $this->databaseOne->query($fielddataQuery);
 		
 		$db1_fields = $this->getFields($db1_results);
-		
-		// ========= DATABASE 2 (EE4) =========
-		// Get exp_fieldtypes (get fieldtype_id, name)
-		$db2_results = $this->databaseTwo->query($fieldtypeQuery);
 
-		$db2_fieldtypes = $this->getFieldTypes($db2_results);
-		
-		// Get exp_channel_fields (get field_id, field_label, field_type)
-		$db2_results = $this->databaseTwo->query($fielddataQuery);
-		
-		$db2_fields = $this->getFields($db2_results);
-
-		// Send return data to VIEW
-		$returnData = array(
-			'fields1' => $db1_fields,
-			'fields2' => $db2_fields
-		);
-
-		return $returnData;
+		return $db1_fields;
 
 	}
 
@@ -146,21 +201,29 @@ die();
 		while($row = $dbResult->fetch_assoc()) {
 
 			switch ($row['field_type']) {
-				case 'matrix':
-				case 'playa':
-					$message = 'This field is deprecated. Please use the EE2 Playa/Matrix Convertor before using this';
+				case 'relationship':
+					$table = 'exp_relationships';
 					break;
 				
+				case 'grid':
+					$table = 'exp_channel_grid_field_' . $row['field_id'];
+					break;
+
+				case 'matrix':
+				case 'playa':
+					$table = NULL;
+					break;
+
 				default:
-					$message = NULL;
+					$table = 'exp_channel_data';
 					break;
 			}
 
 			$returnData[] = array(
 				'id' => $row['field_id'],
-				'name' => $row['field_label'] . ' (' . $row['field_type'] . ')',
-				'formName' => 'dbfield_' . $row['field_id'],
-				'message' => $message
+				'name' => $row['field_name'],
+				'type' => $row['field_type'],
+				'table' => $table
 			);
 
 		}
