@@ -115,7 +115,96 @@ class MoveController
 	private function getRelationshipData($dbInfo)
 	{
 
-		// $query = 'SELECT '
+		$query = 'SELECT `relationship_id`, `parent_id`, `child_id`, `order`, `field_id`, `grid_field_id`, `grid_col_id`, `grid_row_id` FROM ' . $dbInfo['table'];
+
+		$results = $this->databaseOne->query($query);
+
+		$outputData = array();
+
+		while($row = $results->fetch_assoc()) {
+
+			$outputData[] = $row;
+
+		}
+
+		$queryStart = 'INSERT INTO `' . $dbInfo['db2_table'] . '` (`entry_id`, `field_ft_' . $dbInfo['db2_field_id'] . '`) VALUES(';
+
+		$insertQuery = $queryStart;
+
+		$count = 0;
+
+		$last = end($outputData);
+
+		foreach ($outputData as $oDataRow) {
+			
+			$keys = array_keys($oDataRow);
+
+			$insertQuery .= "'" . $oDataRow['parent_id'] . "','xhtml'";
+
+			if($count >= 50 || (int)$oDataRow['parent_id'] == (int)$last['parent_id']) {
+
+				$insertQuery .= ');';
+
+				$count = 0;
+
+				// QUERY
+				if($this->databaseTwo->query($insertQuery) !== TRUE) {
+
+					$errorString = "BORKED ON: {$insertQuery} \nERROR: {$this->databaseTwo->error}";
+					die($errorString);
+
+				}
+
+				$insertQuery = $queryStart;
+
+			} else {
+				
+				$insertQuery .= '),(';
+
+				$count++;
+
+			}
+
+		}
+
+		// Then add these to relationships
+		$queryStart = 'INSERT INTO `exp_relationships` (`relationship_id`, `parent_id`, `child_id`, `order`, `field_id`, `grid_field_id`, `grid_col_id`, `grid_row_id`) VALUES(';
+
+		$insertQuery = $queryStart;
+
+		$count = 0;
+
+		foreach ($outputData as $oDataRow) {
+			
+			$insertQuery .= "'" . $oDataRow['relationship_id'] . "','" . $oDataRow['parent_id'] . "','" . $oDataRow['child_id'] . "','" . $oDataRow['order'] . "','" . $oDataRow['field_id'] . "','". $oDataRow['grid_field_id'] . "','". $oDataRow['grid_col_id'] . "','" . $oDataRow['grid_row_id'] . "'";
+
+			if($count >= 50 || (int)$oDataRow['parent_id'] == (int)$last['parent_id']) {
+
+				$insertQuery .= ');';
+
+				$count = 0;
+
+				// QUERY
+				if($this->databaseTwo->query($insertQuery) !== TRUE) {
+
+					$errorString = "BORKED ON: {$insertQuery} \nERROR: {$this->databaseTwo->error}";
+					die($errorString);
+
+				}
+
+				$insertQuery = $queryStart;
+
+			} else {
+				
+				$insertQuery .= '),(';
+
+				$count++;
+
+			}
+
+		}
+
+		return null;
 
 	}
 
@@ -194,7 +283,7 @@ class MoveController
 
 		}
 
-		die('ijdajoidaoijdasjiodsa');
+		return null;
 
 	}
 
