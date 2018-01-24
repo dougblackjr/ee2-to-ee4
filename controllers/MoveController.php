@@ -71,6 +71,8 @@ class MoveController
 
 					$foundField = $dbf;
 
+					$foundField['db2_field_id'] = $db2name;
+
 					$foundField['db2_table'] = 'exp_channel_data_field_' . $db2name;
 
 					$fieldsToMove[] = $foundField;
@@ -125,7 +127,7 @@ class MoveController
 	private function getRegularData($dbInfo)
 	{
 
-		$query = 'SELECT field_id_' . $dbInfo['id'] . ',field_ft_' . $dbInfo['id'] . ' FROM ' . $dbInfo['table'];
+		$query = 'SELECT entry_id, field_id_' . $dbInfo['id'] . ',field_ft_' . $dbInfo['id'] . ' FROM ' . $dbInfo['table'];
 		
 		$results = $this->databaseOne->query($query);
 
@@ -137,8 +139,62 @@ class MoveController
 
 		}
 
-		var_dump($outputData);
-		die();
+		// var_dump($outputData, $dbInfo);
+		// die();
+
+		$queryStart = 'INSERT INTO `' . $dbInfo['db2_table'] . '` (`entry_id`, `field_id_' . $dbInfo['db2_field_id'] . '`, `field_ft_' . $dbInfo['db2_field_id'] . '`) VALUES(';
+
+		$insertQuery = $queryStart;
+
+		$count = 0;
+
+		$last = end($outputData);
+
+		foreach ($outputData as $oDataRow) {
+			
+			$keys = array_keys($oDataRow);
+
+			if(!empty($oDataRow[$keys[1]])) {
+				$f1 = "'" . $oDataRow[$keys[1]] . "'";
+			} else {
+				$f1 = "null";
+			}
+
+			if(!empty($oDataRow[$keys[2]])) {
+				$f2 = "'" . $oDataRow[$keys[2]] . "'";
+			} else {
+				$f2 = "null";
+			}
+
+			$insertQuery .= "'" . $oDataRow['entry_id'] . "', " . $f1 . ", " . $f2;
+
+			if($count >= 50 || (int)$oDataRow['entry_id'] == (int)$last['entry_id']) {
+
+				$insertQuery .= ');';
+
+				$count = 0;
+
+				// QUERY
+				if($this->databaseTwo->query($insertQuery) !== TRUE) {
+
+					$errorString = "BORKED ON: {$insertQuery} \nERROR: {$this->databaseTwo->error}";
+					die($errorString);
+
+				}
+
+				$insertQuery = $queryStart;
+
+			} else {
+				
+				$insertQuery .= '),(';
+
+				$count++;
+
+			}
+
+		}
+
+		die('ijdajoidaoijdasjiodsa');
 
 	}
 
