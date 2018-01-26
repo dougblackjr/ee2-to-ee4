@@ -48,6 +48,11 @@ class MoveController
 
 		}
 
+		echo "Holy wow, it worked! \n";
+		echo "Go make glorious things in EE4!";
+
+		die();
+
 	}
 
 	function initializeFields($request)
@@ -211,6 +216,88 @@ class MoveController
 	private function getGridData($dbInfo)
 	{
 
+		$describeQuery = 'DESCRIBE ' . $dbInfo['table'];
+
+		$tableRowQuery = $this->databaseOne->query($describeQuery);
+
+		$db1Fields = array();
+
+		while($row = $tableRowQuery->fetch_assoc()) {
+
+			$db1Fields[] = $row['Field'];
+
+		}
+		
+		// Query DB1 with this
+		// Build query
+		$db1EntryQuery = $this->getGridDataRowQuery($db1Fields, NULL, $dbInfo, TRUE);
+
+		$db1Entries = $this->databaseOne->query($db1EntryQuery);
+
+		while($row = $db1Entries->fetch_assoc()) {
+
+			$db2InsertQuery = $this->getGridDataRowQuery($row, $db1Fields, $dbInfo);
+
+			if($this->databaseTwo->query($db2InsertQuery) !== TRUE) {
+
+				$errorString = "BORKED ON: {$db2InsertQuery} \nERROR: {$this->databaseTwo->error}";
+				die($errorString);
+
+			}
+
+		}
+
+		return null;
+
+	}
+
+	private function getGridDataRowQuery($row, $db1Fields = NULL, $dbInfo = NULL, $isInitial = FALSE)
+	{
+
+		if($isInitial) {
+			// BUILD INITIAL SELECT STRING
+			$queryString =  'SELECT ';
+			$last = end($row);
+
+			foreach ($row as $key => $value) {
+				
+				$queryString .= '`' . $value . '`';
+
+				if($value == $last) {
+					$queryString .= ' FROM ' . $dbInfo['table'];
+				} else {
+					$queryString .= ',';
+				}
+
+			}
+		} else {
+
+			$queryString = 'INSERT INTO exp_channel_grid_field_' . $dbInfo['db2_field_id'] . ' (`';
+
+			$lastField = end($db1Fields);
+
+			foreach ($db1Fields as $field_name) {
+				
+				$queryString .= $field_name . '`';
+
+				$queryString .= ($field_name == $lastField ? ') VALUES (' : ',`');
+			
+			}
+
+			$lastValue = end($row);
+
+			foreach ($row as $value) {
+				
+				$queryString .= "'" . addslashes($value) ."'";
+
+				$queryString .= ($value == $lastValue ? ')' : ',');
+
+			}
+
+		}
+
+		return $queryString;
+
 	}
 
 	private function getRegularData($dbInfo)
@@ -227,9 +314,6 @@ class MoveController
 			$outputData[] = $row;
 
 		}
-
-		// var_dump($outputData, $dbInfo);
-		// die();
 
 		$queryStart = 'INSERT INTO `' . $dbInfo['db2_table'] . '` (`entry_id`, `field_id_' . $dbInfo['db2_field_id'] . '`, `field_ft_' . $dbInfo['db2_field_id'] . '`) VALUES(';
 
